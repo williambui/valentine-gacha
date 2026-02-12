@@ -68,7 +68,7 @@ export default function RewardCard({ reward, isNew }) {
             background: "linear-gradient(135deg, #ff6b6b, #ee5a24)",
             color: "white", fontSize: 11, fontWeight: 800,
             padding: "4px 14px", borderRadius: 20,
-            fontFamily: "'Nunito', sans-serif", letterSpacing: "0.08em",
+            fontFamily: "'Quicksand', sans-serif", letterSpacing: "0.08em",
             animation: "pulse 1.5s ease-in-out infinite",
             boxShadow: "0 2px 12px rgba(238,90,36,0.4)",
           }}>
@@ -89,21 +89,21 @@ export default function RewardCard({ reward, isNew }) {
         <div style={{
           fontSize: 12, fontWeight: 700, color: config.color,
           textTransform: "uppercase", letterSpacing: "0.2em",
-          fontFamily: "'Nunito', sans-serif", marginBottom: 6, opacity: 0.9,
+          fontFamily: "'Quicksand', sans-serif", marginBottom: 6, opacity: 0.9,
         }}>
           {config.label}
         </div>
 
         <div style={{
           fontSize: 20, fontWeight: 900, color: "#fff",
-          fontFamily: "'Cinzel', serif", marginBottom: 4, letterSpacing: "0.03em",
+          fontFamily: "'Comfortaa', sans-serif", marginBottom: 4, letterSpacing: "0.03em",
         }}>
           {reward.name}
         </div>
 
         <div style={{
           fontSize: 12, color: "rgba(255,255,255,0.45)",
-          fontFamily: "'Nunito', sans-serif", marginBottom: 6,
+          fontFamily: "'Quicksand', sans-serif", marginBottom: 6,
           textTransform: "uppercase", letterSpacing: "0.12em",
         }}>
           {reward.category}
@@ -111,7 +111,7 @@ export default function RewardCard({ reward, isNew }) {
 
         <div style={{
           fontSize: 14, color: "rgba(255,255,255,0.7)",
-          fontFamily: "'Nunito', sans-serif", fontStyle: "italic", lineHeight: 1.5,
+          fontFamily: "'Quicksand', sans-serif", fontStyle: "italic", lineHeight: 1.5,
         }}>
           "{reward.description}"
         </div>

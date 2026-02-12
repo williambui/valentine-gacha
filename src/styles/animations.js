@@ -1,5 +1,5 @@
 export const ANIMATION_STYLES = `
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700;800;900&family=Nunito:wght@400;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700;800&family=Comfortaa:wght@400;600;700;800&display=swap');
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html, body, #root { height: 100%; overflow: hidden; }

@@ -1,29 +1,11 @@
 import { REWARDS, RARITY_CONFIG, RARITY_STARS } from "../data/rewards";
-import RewardCard from "./RewardCard";
 
-export default function CollectionGrid({ collection, selected, onSelect }) {
-  if (selected) {
-    return (
-      <div
-        onClick={() => onSelect(null)}
-        style={{ marginTop: 16, cursor: "pointer" }}
-      >
-        <RewardCard reward={selected} isNew={false} />
-        <div style={{
-          marginTop: 14, textAlign: "center",
-          fontSize: 11, color: "rgba(255,255,255,0.3)", fontWeight: 600, letterSpacing: "0.08em",
-        }}>
-          tap to go back
-        </div>
-      </div>
-    );
-  }
-
+export default function CollectionGrid({ collection, onSelect }) {
   return (
     <div style={{ marginTop: 16 }}>
       <div style={{
         fontSize: 15, fontWeight: 800, color: "rgba(255,255,255,0.8)",
-        fontFamily: "'Cinzel', serif", marginBottom: 14,
+        fontFamily: "'Comfortaa', sans-serif", marginBottom: 14,
         textAlign: "center", letterSpacing: "0.1em",
       }}>
         Collection — {collection.length}/{REWARDS.length}
