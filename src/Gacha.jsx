@@ -656,7 +656,14 @@ export default function ValentineGacha() {
             )}
             <button
               onClick={() => {
-                if (passwordInput === "ilovebao") {
+                if (passwordInput === "reset") {
+                  localStorage.clear();
+                  setPulls(10);
+                  setCollection([]);
+                  setHistory([]);
+                  setPasswordClosing(true);
+                  setTimeout(() => { setShowPasswordPrompt(false); setPasswordClosing(false); }, 250);
+                } else if (passwordInput === "ilovebao") {
                   setPulls(10);
                   setPasswordClosing(true);
                   setTimeout(() => { setShowPasswordPrompt(false); setPasswordClosing(false); }, 250);
