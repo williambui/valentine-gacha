@@ -45,6 +45,10 @@ export default function ValentineGacha() {
   const [passwordError, setPasswordError] = useState(false);
   const tierTimers = useRef([]);
 
+  function vibrate(pattern) {
+    if (navigator.vibrate) navigator.vibrate(pattern);
+  }
+
   function handlePull() {
     if (pulls <= 0 || phase !== "idle") return;
     const reward = getRandomReward();
@@ -57,6 +61,7 @@ export default function ValentineGacha() {
     setDisplayRarity("common");
     setPhase("opening");
     setPulls((p) => p - 1);
+    vibrate(30);
 
     // Clear any previous timers
     tierTimers.current.forEach(clearTimeout);
@@ -65,7 +70,7 @@ export default function ValentineGacha() {
     // Schedule rarity tier transitions (skip first — already set to common)
     tiers.forEach((tier, i) => {
       if (i === 0) return;
-      const id = setTimeout(() => setDisplayRarity(tier), timePerTier * i);
+      const id = setTimeout(() => { setDisplayRarity(tier); vibrate(20 + i * 15); }, timePerTier * i);
       tierTimers.current.push(id);
     });
 
@@ -73,6 +78,7 @@ export default function ValentineGacha() {
       setPhase("burst");
       // Burst always uses final rarity
       setDisplayRarity(reward.rarity);
+      vibrate([40, 30, 60]);
       const revealId = setTimeout(() => {
         const isNew = !collection.find((c) => c.id === reward.id);
         setIsNewReward(isNew);
@@ -83,6 +89,7 @@ export default function ValentineGacha() {
         });
         setHistory((prev) => [reward, ...prev]);
         setPhase("reveal");
+        vibrate(reward.rarity === "legendary" ? [50, 30, 50, 30, 80] : reward.rarity === "epic" ? [40, 20, 60] : 50);
       }, cfg.burstMs);
       tierTimers.current.push(revealId);
     }, cfg.openingMs);

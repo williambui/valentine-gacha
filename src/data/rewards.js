@@ -2,7 +2,7 @@ export const REWARDS = [
   // Common
   { id: 1, name: "A Kiss", rarity: "common", emoji: "😘", category: "Affection", description: "Redeemable anytime, anywhere" },
   { id: 2, name: "A Dance for You", rarity: "common", emoji: "🕺", category: "Affection", description: "A quick little dance, all for you" },
-  { id: 3, name: "Squat Her ×3", rarity: "common", emoji: "🏋️", category: "Affection", description: "Three full squats with you in my arms" },
+  { id: 3, name: "Squat You ×3", rarity: "common", emoji: "🏋️", category: "Affection", description: "Three full squats with you in my arms" },
   { id: 4, name: "One Compliment", rarity: "common", emoji: "💬", category: "Affection", description: "A genuine, heartfelt compliment on the spot" },
   { id: 5, name: "One Reason I Love You", rarity: "common", emoji: "💕", category: "Affection", description: "I'll tell you one reason why I love you" },
   { id: 6, name: "Group Hug with Bao", rarity: "common", emoji: "🐶", category: "Affection", description: "Mandatory group hug, Bao included" },
@@ -18,7 +18,7 @@ export const REWARDS = [
   { id: 14, name: "A Song for You", rarity: "rare", emoji: "🎤", category: "Affection", description: "I'll sing any song you pick, no backing out" },
   // Legendary
   { id: 15, name: "Anything You Want", rarity: "legendary", emoji: "🌟", category: "Gift", description: "Name it. It's yours. No limits." },
-  { id: 16, name: "Her Own Holiday", rarity: "legendary", emoji: "👑", category: "Date", description: "A whole day dedicated to celebrating her. Pick any date" },
+  { id: 16, name: "Your Own Holiday", rarity: "legendary", emoji: "👑", category: "Date", description: "A whole day dedicated to celebrating you. Pick any date" },
 ];
 
 export const RARITY_CONFIG = {
