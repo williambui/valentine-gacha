@@ -22,13 +22,13 @@ export const REWARDS = [
 ];
 
 export const RARITY_CONFIG = {
-  common: { label: "Common", color: "#9ca3af", bg: "#1f2937", glow: "rgba(156,163,175,0.3)", chance: 50 },
-  rare: { label: "Rare", color: "#60a5fa", bg: "#1e3a5f", glow: "rgba(96,165,250,0.4)", chance: 30 },
-  epic: { label: "Epic", color: "#c084fc", bg: "#3b1f6e", glow: "rgba(192,132,252,0.5)", chance: 15 },
-  legendary: { label: "Legendary", color: "#fbbf24", bg: "#5c3d0e", glow: "rgba(251,191,36,0.6)", chance: 5 },
+  common: { label: "Common", color: "#9ca3af", bg: "#1f2937", glow: "rgba(156,163,175,0.3)", chance: 50, openingMs: 1200, burstMs: 600, shakeIntensity: 1, particleCount: 14, flashIntensity: 0.08 },
+  rare: { label: "Rare", color: "#60a5fa", bg: "#1e3a5f", glow: "rgba(96,165,250,0.4)", chance: 30, openingMs: 1800, burstMs: 800, shakeIntensity: 1.3, particleCount: 26, flashIntensity: 0.2 },
+  epic: { label: "Epic", color: "#c084fc", bg: "#3b1f6e", glow: "rgba(192,132,252,0.5)", chance: 15, openingMs: 2500, burstMs: 1000, shakeIntensity: 1.8, particleCount: 42, flashIntensity: 0.4 },
+  legendary: { label: "Legendary", color: "#fbbf24", bg: "#5c3d0e", glow: "rgba(251,191,36,0.6)", chance: 5, openingMs: 3200, burstMs: 1400, shakeIntensity: 2.5, particleCount: 60, flashIntensity: 0.55 },
 };
 
-export const RARITY_STARS = { common: 3, rare: 4, epic: 5, legendary: 5 };
+export const RARITY_STARS = { common: 2, rare: 3, epic: 4, legendary: 5 };
 
 export const BG_STARS = Array.from({ length: 55 }, () => ({
   x: Math.random() * 100,

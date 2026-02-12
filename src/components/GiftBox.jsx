@@ -1,18 +1,27 @@
 import { RARITY_CONFIG } from "../data/rewards";
 
-export default function GiftBox({ phase, rarity }) {
+const SHAKE_ANIM = {
+  common: "boxShakeCommon",
+  rare: "boxShakeRare",
+  epic: "boxShakeEpic",
+  legendary: "boxShakeLegendary",
+};
+
+export default function GiftBox({ phase, rarity, finalRarity }) {
   const rarityColor = rarity ? RARITY_CONFIG[rarity].color : "#ff6b9d";
   const rarityGlow = rarity ? RARITY_CONFIG[rarity].glow : "rgba(255,107,157,0.4)";
+  const cfg = rarity ? RARITY_CONFIG[rarity] : RARITY_CONFIG.common;
+  const isIntense = rarity === "legendary" || rarity === "epic";
 
   const wrapperAnim =
     phase === "opening"
-      ? "boxShake 1.5s ease-in-out"
+      ? `${SHAKE_ANIM[rarity] || "boxShakeCommon"} 0.6s ease-in-out infinite`
       : phase === "idle"
         ? "idleFloat 3s ease-in-out infinite"
         : undefined;
 
   return (
-    <div style={{ position: "relative", height: 240, display: "flex", justifyContent: "center", alignItems: "flex-end" }}>
+    <div style={{ position: "relative", height: 190, display: "flex", justifyContent: "center", alignItems: "flex-end" }}>
       {/* Glow pool */}
       <div style={{
         position: "absolute",
@@ -24,9 +33,13 @@ export default function GiftBox({ phase, rarity }) {
         borderRadius: "50%",
         background: `radial-gradient(ellipse, ${phase === "opening" ? rarityGlow : "rgba(255,107,157,0.2)"}, transparent 70%)`,
         filter: "blur(18px)",
-        animation: phase === "opening" ? "glowBuild 1.5s ease-in forwards" : "idleGlowPulse 2.5s ease-in-out infinite",
+        transition: "background 0.5s ease",
+        animation: phase === "opening"
+          ? "glowBuild 1.5s ease-in forwards"
+          : "idleGlowPulse 2.5s ease-in-out infinite",
         pointerEvents: "none",
         zIndex: 0,
+        willChange: "transform, opacity",
       }} />
 
       {/* Sparkle stars (idle) */}
@@ -45,19 +58,22 @@ export default function GiftBox({ phase, rarity }) {
       ))}
 
       {/* Shake/float wrapper */}
-      <div style={{ position: "relative", width: 170, animation: wrapperAnim, zIndex: 1 }}>
+      <div style={{ position: "relative", width: 150, animation: wrapperAnim, zIndex: 1, willChange: "transform" }}>
         {/* Box body */}
         <div style={{
           position: "absolute",
           bottom: 0,
-          left: 15,
-          width: 140,
-          height: 110,
+          left: 13,
+          width: 124,
+          height: 95,
           background: "linear-gradient(160deg, #ff8ab5 0%, #ff6b9d 35%, #ff4d8d 100%)",
           borderRadius: "6px 6px 10px 10px",
           boxShadow: "inset 0 -10px 20px rgba(0,0,0,0.15), inset 0 2px 0 rgba(255,255,255,0.25), 0 8px 32px rgba(255,107,157,0.15)",
-          animation: phase === "burst" ? "boxBodyFade 0.5s ease-out forwards" : undefined,
+          animation: phase === "burst"
+            ? `${isIntense ? "boxBodyFadeIntense" : "boxBodyFade"} ${cfg.burstMs * 0.7}ms ease-out forwards`
+            : undefined,
           overflow: "hidden",
+          willChange: phase === "burst" ? "transform, opacity" : undefined,
         }}>
           {/* Subtle diagonal pattern */}
           <div style={{
@@ -93,21 +109,25 @@ export default function GiftBox({ phase, rarity }) {
         {/* Seam glow */}
         {phase === "opening" && (
           <div style={{
-            position: "absolute", bottom: 108, left: 8, right: 8, height: 8,
-            background: rarityColor, filter: "blur(6px)",
-            animation: "seamGlow 1.5s ease-in forwards",
+            position: "absolute", bottom: 93, left: 8, right: 8, height: 8,
+            background: rarityColor, filter: `blur(${isIntense ? 10 : 6}px)`,
+            transition: "background 0.3s ease, filter 0.3s ease",
+            animation: "seamGlow 1s ease-in forwards",
             opacity: 0, zIndex: 4, borderRadius: 4,
           }} />
         )}
 
         {/* Lid */}
         <div style={{
-          position: "absolute", bottom: 110, left: 3, width: 164, height: 32,
+          position: "absolute", bottom: 95, left: 3, width: 144, height: 28,
           background: "linear-gradient(160deg, #ffadc9, #ff8ab5 40%, #ff6b9d)",
           borderRadius: "8px 8px 3px 3px",
           boxShadow: "0 4px 16px rgba(0,0,0,0.25), inset 0 2px 0 rgba(255,255,255,0.3)",
-          animation: phase === "burst" ? "lidFlyOff 0.6s cubic-bezier(0.2, 0.8, 0.3, 1) forwards" : undefined,
+          animation: phase === "burst"
+            ? `${isIntense ? "lidFlyOffIntense" : "lidFlyOff"} ${cfg.burstMs * 0.85}ms cubic-bezier(0.2, 0.8, 0.3, 1) forwards`
+            : undefined,
           zIndex: 3, overflow: "hidden",
+          willChange: phase === "burst" ? "transform, opacity" : undefined,
         }}>
           <div style={{
             position: "absolute", left: "50%", top: 0, bottom: 0, width: 24,
@@ -118,9 +138,12 @@ export default function GiftBox({ phase, rarity }) {
 
         {/* Bow */}
         <div style={{
-          position: "absolute", bottom: 140, left: "50%",
-          transform: "translateX(-50%)", width: 70, height: 45, zIndex: 4,
-          animation: phase === "burst" ? "lidFlyOff 0.6s cubic-bezier(0.2, 0.8, 0.3, 1) forwards" : undefined,
+          position: "absolute", bottom: 121, left: "50%",
+          transform: "translateX(-50%)", width: 60, height: 40, zIndex: 4,
+          animation: phase === "burst"
+            ? `${isIntense ? "lidFlyOffIntense" : "lidFlyOff"} ${cfg.burstMs * 0.85}ms cubic-bezier(0.2, 0.8, 0.3, 1) forwards`
+            : undefined,
+          willChange: phase === "burst" ? "transform, opacity" : undefined,
         }}>
           <div style={{
             position: "absolute", left: -2, top: 8, width: 32, height: 26, borderRadius: "50%",

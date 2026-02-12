@@ -1,6 +1,24 @@
 import { REWARDS, RARITY_CONFIG, RARITY_STARS } from "../data/rewards";
+import RewardCard from "./RewardCard";
 
-export default function CollectionGrid({ collection }) {
+export default function CollectionGrid({ collection, selected, onSelect }) {
+  if (selected) {
+    return (
+      <div
+        onClick={() => onSelect(null)}
+        style={{ marginTop: 16, cursor: "pointer" }}
+      >
+        <RewardCard reward={selected} isNew={false} />
+        <div style={{
+          marginTop: 14, textAlign: "center",
+          fontSize: 11, color: "rgba(255,255,255,0.3)", fontWeight: 600, letterSpacing: "0.08em",
+        }}>
+          tap to go back
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div style={{ marginTop: 16 }}>
       <div style={{
@@ -19,24 +37,29 @@ export default function CollectionGrid({ collection }) {
           const owned = collection.find((c) => c.id === reward.id);
           const config = RARITY_CONFIG[reward.rarity];
           return (
-            <div key={reward.id} title={owned ? `${reward.name} — ${reward.description}` : "???"} style={{
-              aspectRatio: "1",
-              display: "flex", flexDirection: "column",
-              alignItems: "center", justifyContent: "center",
-              fontSize: 26, borderRadius: 14,
-              background: owned
-                ? `linear-gradient(145deg, ${config.bg}cc, rgba(10,10,20,0.8))`
-                : "rgba(255,255,255,0.02)",
-              border: owned
-                ? `1.5px solid ${config.color}50`
-                : "1.5px solid rgba(255,255,255,0.04)",
-              opacity: owned ? 1 : 0.2,
-              transition: "all 0.3s",
-              position: "relative",
-              backdropFilter: owned ? "blur(10px)" : undefined,
-              boxShadow: owned ? `0 0 12px ${config.glow}` : "none",
-            }}>
-              {owned ? reward.emoji : "?"}
+            <div
+              key={reward.id}
+              onClick={() => { if (owned) onSelect(reward); }}
+              style={{
+                aspectRatio: "1",
+                display: "flex", flexDirection: "column",
+                alignItems: "center", justifyContent: "center",
+                fontSize: 26, borderRadius: 14,
+                cursor: owned ? "pointer" : "default",
+                background: owned
+                  ? `linear-gradient(145deg, ${config.bg}cc, rgba(10,10,20,0.8))`
+                  : "rgba(255,255,255,0.06)",
+                border: owned
+                  ? `1.5px solid ${config.color}50`
+                  : "1.5px solid rgba(255,255,255,0.1)",
+                opacity: owned ? 1 : 0.45,
+                transition: "all 0.3s",
+                position: "relative",
+                backdropFilter: owned ? "blur(10px)" : undefined,
+                boxShadow: owned ? `0 0 12px ${config.glow}` : "none",
+              }}
+            >
+              {owned ? reward.emoji : <span style={{ color: "rgba(255,255,255,0.35)", fontSize: 22, fontWeight: 800 }}>?</span>}
               {owned && (
                 <div style={{ display: "flex", gap: 1, marginTop: 2 }}>
                   {Array.from({ length: RARITY_STARS[reward.rarity] }).map((_, si) => (

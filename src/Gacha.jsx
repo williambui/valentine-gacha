@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import { REWARDS, RARITY_CONFIG, RARITY_STARS, BG_STARS, getRandomReward } from "./data/rewards";
 import { ANIMATION_STYLES } from "./styles/animations";
 import GiftBox from "./components/GiftBox";
@@ -8,25 +8,50 @@ import ScreenFlash from "./components/ScreenFlash";
 import RewardCard from "./components/RewardCard";
 import CollectionGrid from "./components/CollectionGrid";
 
+const RARITY_TIERS = ["common", "rare", "epic", "legendary"];
+
 export default function ValentineGacha() {
   const [pulls, setPulls] = useState(10);
   const [collection, setCollection] = useState([]);
   const [currentReward, setCurrentReward] = useState(null);
   const [phase, setPhase] = useState("idle");
+  const [displayRarity, setDisplayRarity] = useState(null);
   const [isNewReward, setIsNewReward] = useState(false);
   const [showCollection, setShowCollection] = useState(false);
+  const [collectionClosing, setCollectionClosing] = useState(false);
+  const [selectedReward, setSelectedReward] = useState(null);
   const [history, setHistory] = useState([]);
+  const tierTimers = useRef([]);
 
   function handlePull() {
     if (pulls <= 0 || phase !== "idle") return;
     const reward = getRandomReward();
+    const cfg = RARITY_CONFIG[reward.rarity];
+    const finalTierIdx = RARITY_TIERS.indexOf(reward.rarity);
+    const tiers = RARITY_TIERS.slice(0, finalTierIdx + 1);
+    const timePerTier = cfg.openingMs / tiers.length;
+
     setCurrentReward(reward);
+    setDisplayRarity("common");
     setPhase("opening");
     setPulls((p) => p - 1);
 
-    setTimeout(() => {
+    // Clear any previous timers
+    tierTimers.current.forEach(clearTimeout);
+    tierTimers.current = [];
+
+    // Schedule rarity tier transitions (skip first — already set to common)
+    tiers.forEach((tier, i) => {
+      if (i === 0) return;
+      const id = setTimeout(() => setDisplayRarity(tier), timePerTier * i);
+      tierTimers.current.push(id);
+    });
+
+    const burstId = setTimeout(() => {
       setPhase("burst");
-      setTimeout(() => {
+      // Burst always uses final rarity
+      setDisplayRarity(reward.rarity);
+      const revealId = setTimeout(() => {
         const isNew = !collection.find((c) => c.id === reward.id);
         setIsNewReward(isNew);
         setCollection((prev) => {
@@ -36,13 +61,30 @@ export default function ValentineGacha() {
         });
         setHistory((prev) => [reward, ...prev]);
         setPhase("reveal");
-      }, 700);
-    }, 1500);
+      }, cfg.burstMs);
+      tierTimers.current.push(revealId);
+    }, cfg.openingMs);
+    tierTimers.current.push(burstId);
   }
+
+  const closeCollection = useCallback(() => {
+    if (collectionClosing) return;
+    // If viewing a card, go back to grid instead of closing overlay
+    if (selectedReward) {
+      setSelectedReward(null);
+      return;
+    }
+    setCollectionClosing(true);
+    setTimeout(() => {
+      setShowCollection(false);
+      setCollectionClosing(false);
+    }, 280);
+  }, [collectionClosing, selectedReward]);
 
   function handleContinue() {
     setPhase("idle");
     setCurrentReward(null);
+    setDisplayRarity(null);
     setIsNewReward(false);
   }
 
@@ -58,7 +100,7 @@ export default function ValentineGacha() {
       <style>{ANIMATION_STYLES}</style>
 
       <div style={{
-        minHeight: "100vh",
+        height: "100dvh",
         background: "linear-gradient(160deg, #080613 0%, #12082a 25%, #0d0620 50%, #0a0418 75%, #080613 100%)",
         color: "#fff",
         fontFamily: "'Nunito', sans-serif",
@@ -101,49 +143,49 @@ export default function ValentineGacha() {
           </div>
         ))}
 
-        <ScreenFlash rarity={currentReward?.rarity} active={phase === "burst"} />
+        <ScreenFlash rarity={displayRarity || currentReward?.rarity} active={phase === "burst"} />
 
-        <div style={{ position: "relative", zIndex: 1, maxWidth: 420, margin: "0 auto", padding: "36px 20px" }}>
+        <div style={{
+          position: "relative", zIndex: 1, maxWidth: 420, margin: "0 auto",
+          padding: "max(env(safe-area-inset-top), 16px) 16px max(env(safe-area-inset-bottom), 12px)",
+          height: "100%", display: "flex", flexDirection: "column",
+        }}>
           {/* Header */}
-          <div style={{ textAlign: "center", marginBottom: 28 }}>
+          <div style={{ textAlign: "center", marginBottom: 10, flexShrink: 0 }}>
             <div style={{
-              display: "flex", alignItems: "center", justifyContent: "center", gap: 12, marginBottom: 10,
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 10, marginBottom: 6,
             }}>
-              <span style={{ color: "#ffd54f", fontSize: 10, letterSpacing: "0.3em", opacity: 0.5 }}>✦ ━━━</span>
+              <span style={{ color: "#ffd54f", fontSize: 9, letterSpacing: "0.3em", opacity: 0.5 }}>✦ ━━━</span>
               <span style={{
-                fontSize: 12, letterSpacing: "0.35em", textTransform: "uppercase",
+                fontSize: 10, letterSpacing: "0.35em", textTransform: "uppercase",
                 color: "#ff6b9d", fontWeight: 800,
               }}>
                 Happy Valentine's Day
               </span>
-              <span style={{ color: "#ffd54f", fontSize: 10, letterSpacing: "0.3em", opacity: 0.5 }}>━━━ ✦</span>
+              <span style={{ color: "#ffd54f", fontSize: 9, letterSpacing: "0.3em", opacity: 0.5 }}>━━━ ✦</span>
             </div>
             <h1 style={{
-              fontSize: 40, fontWeight: 900, fontFamily: "'Cinzel', serif",
+              fontSize: 32, fontWeight: 900, fontFamily: "'Cinzel', serif",
               background: "linear-gradient(135deg, #ffb3d0, #ff6b9d, #ff4d8d, #ff6b9d)",
               WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
-              lineHeight: 1.2, marginBottom: 6, letterSpacing: "0.08em",
+              lineHeight: 1.2, marginBottom: 4, letterSpacing: "0.08em",
               filter: "drop-shadow(0 0 20px rgba(255,107,157,0.3))",
             }}>
               Love Gacha
             </h1>
-            <div style={{
-              fontSize: 13, color: "rgba(255,255,255,0.3)", fontWeight: 600, letterSpacing: "0.15em",
-            }}>
-              Star Warp — Valentine's Edition
-            </div>
           </div>
 
           {/* Rarity guide with stars */}
           <div style={{
-            display: "flex", justifyContent: "center", gap: 14, marginBottom: 24, fontSize: 11, fontWeight: 700,
+            display: "flex", justifyContent: "space-evenly", marginBottom: 10, fontSize: 10, fontWeight: 700, flexShrink: 0,
           }}>
             {Object.entries(RARITY_CONFIG).map(([key, cfg]) => (
-              <div key={key} style={{ color: cfg.color, opacity: 0.6, display: "flex", alignItems: "center", gap: 4 }}>
-                <span style={{ fontSize: 7 }}>
+              <div key={key} style={{ color: cfg.color, opacity: 0.6, display: "flex", flexDirection: "column", alignItems: "center", gap: 1 }}>
+                <span style={{ fontSize: 7, textTransform: "uppercase", letterSpacing: "0.05em" }}>{cfg.label}</span>
+                <span style={{ fontSize: 8, letterSpacing: 1 }}>
                   {Array.from({ length: RARITY_STARS[key] }).map((_, i) => <span key={i}>★</span>)}
                 </span>
-                <span>{rarityStats[key]}/{REWARDS.filter((r) => r.rarity === key).length}</span>
+                <span style={{ fontSize: 9 }}>{rarityStats[key]}/{REWARDS.filter((r) => r.rarity === key).length}</span>
               </div>
             ))}
           </div>
@@ -153,11 +195,16 @@ export default function ValentineGacha() {
             background: "rgba(255,255,255,0.03)",
             backdropFilter: "blur(24px)",
             border: "1px solid rgba(255,255,255,0.06)",
-            borderRadius: 24,
-            padding: "28px 20px 24px",
+            borderRadius: 20,
+            padding: "16px 16px 14px",
             position: "relative",
             overflow: "hidden",
-            marginBottom: 20,
+            marginBottom: 10,
+            flex: 1,
+            minHeight: 0,
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
           }}>
             {/* Corner accents */}
             {[{ top: 10, left: 10 }, { top: 10, right: 10 }, { bottom: 10, left: 10 }, { bottom: 10, right: 10 }].map((pos, i) => (
@@ -169,73 +216,85 @@ export default function ValentineGacha() {
               }} />
             ))}
 
-            {/* IDLE */}
-            {phase === "idle" && (
-              <div style={{ animation: "fadeIn 0.4s ease-out" }}>
-                <GiftBox phase="idle" rarity={null} />
-                <div style={{ textAlign: "center", marginTop: 20 }}>
-                  <button
-                    onClick={handlePull}
-                    disabled={pulls <= 0}
-                    style={{
-                      padding: "16px 48px", fontSize: 16, fontWeight: 800,
-                      fontFamily: "'Nunito', sans-serif", color: "#fff",
-                      background: pulls <= 0
-                        ? "rgba(255,255,255,0.06)"
-                        : "linear-gradient(135deg, #ff6b9d, #ff4d8d, #e8356d)",
-                      border: pulls <= 0
-                        ? "2px solid rgba(255,255,255,0.06)"
-                        : "2px solid rgba(255,107,157,0.5)",
-                      borderRadius: 50,
-                      cursor: pulls <= 0 ? "not-allowed" : "pointer",
-                      letterSpacing: "0.06em",
-                      animation: pulls > 0 ? "buttonGlow 2s ease-in-out infinite" : undefined,
-                      transition: "transform 0.2s",
-                    }}
-                    onMouseEnter={(e) => { if (pulls > 0) e.currentTarget.style.transform = "scale(1.06)"; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; }}
-                  >
-                    ✦ Make a Wish ✦
-                  </button>
-                  <div style={{
-                    marginTop: 14, fontSize: 13, color: "rgba(255,255,255,0.35)",
-                    fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
-                  }}>
-                    <span style={{
-                      background: "linear-gradient(135deg, #c084fc, #818cf8)",
-                      WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", fontSize: 15,
-                    }}>💎</span>
-                    <span>×{pulls} remaining</span>
-                  </div>
-                  {pulls <= 0 && (
-                    <div style={{ marginTop: 10, color: "rgba(255,255,255,0.35)", fontSize: 13 }}>
-                      All wishes used! Check your collection ✦
+            {/* GiftBox phases (idle/opening/burst) — fixed layout so box never moves */}
+            {phase !== "reveal" && (
+              <div style={{ position: "relative" }}>
+                {phase === "burst" && <LightBeam rarity={displayRarity} active={true} />}
+                <GiftBox phase={phase} rarity={phase !== "idle" ? displayRarity : null} finalRarity={currentReward?.rarity} />
+                {phase === "opening" && <Particles rarity={displayRarity} mode="swirl" />}
+                {phase === "burst" && <Particles rarity={displayRarity} mode="burst" />}
+
+                {/* Fixed-height controls zone — same height regardless of phase */}
+                <div style={{ height: 80, textAlign: "center", marginTop: 14 }}>
+                  {phase === "idle" && (
+                    <div style={{ animation: "fadeIn 0.4s ease-out" }}>
+                      <div style={{ position: "relative", display: "inline-block" }}>
+                        {/* Smooth glow layer behind button — animates opacity only (GPU) */}
+                        {pulls > 0 && (
+                          <div style={{
+                            position: "absolute", inset: -20,
+                            borderRadius: 70,
+                            background: "radial-gradient(ellipse at center, rgba(255,107,157,0.5) 0%, rgba(255,107,157,0.3) 40%, transparent 70%)",
+                            filter: "blur(8px)",
+                            animation: "buttonGlowPulse 3s ease-in-out infinite",
+                            pointerEvents: "none",
+                            willChange: "opacity",
+                          }} />
+                        )}
+                        <button
+                          onClick={handlePull}
+                          disabled={pulls <= 0}
+                          style={{
+                            position: "relative",
+                            padding: "14px 44px", fontSize: 15, fontWeight: 800,
+                            fontFamily: "'Nunito', sans-serif", color: "#fff",
+                            background: pulls <= 0
+                              ? "rgba(255,255,255,0.06)"
+                              : "linear-gradient(135deg, #ff6b9d, #ff4d8d, #e8356d)",
+                            border: pulls <= 0
+                              ? "2px solid rgba(255,255,255,0.06)"
+                              : "2px solid rgba(255,107,157,0.5)",
+                            borderRadius: 50,
+                            cursor: pulls <= 0 ? "not-allowed" : "pointer",
+                            letterSpacing: "0.06em",
+                            boxShadow: pulls > 0
+                              ? "0 0 20px rgba(255,107,157,0.3), 0 4px 15px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.15)"
+                              : "none",
+                            transition: "transform 0.15s ease-out",
+                          }}
+                          onMouseEnter={(e) => { if (pulls > 0) e.currentTarget.style.transform = "scale(1.06)"; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; }}
+                        >
+                          ✦ Make a Wish ✦
+                        </button>
+                      </div>
+                      <div style={{
+                        marginTop: 10, fontSize: 12, color: "rgba(255,255,255,0.35)",
+                        fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+                      }}>
+                        <span style={{
+                          background: "linear-gradient(135deg, #c084fc, #818cf8)",
+                          WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", fontSize: 15,
+                        }}>💎</span>
+                        <span>×{pulls} remaining</span>
+                      </div>
+                      {pulls <= 0 && (
+                        <div style={{ marginTop: 10, color: "rgba(255,255,255,0.35)", fontSize: 13 }}>
+                          All wishes used! Check your collection ✦
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  {phase === "opening" && (
+                    <div style={{
+                      fontSize: 13, color: "rgba(255,255,255,0.3)", fontWeight: 600, letterSpacing: "0.1em",
+                      paddingTop: 2,
+                      animation: "wishingPulse 1.5s ease-in-out infinite",
+                    }}>
+                      ✦ Wishing... ✦
                     </div>
                   )}
                 </div>
-              </div>
-            )}
-
-            {/* OPENING */}
-            {phase === "opening" && currentReward && (
-              <div style={{ position: "relative" }}>
-                <GiftBox phase="opening" rarity={currentReward.rarity} />
-                <Particles rarity={currentReward.rarity} mode="swirl" />
-                <div style={{
-                  textAlign: "center", marginTop: 16, fontSize: 13,
-                  color: "rgba(255,255,255,0.3)", fontWeight: 600, letterSpacing: "0.1em",
-                }}>
-                  ✦ Wishing... ✦
-                </div>
-              </div>
-            )}
-
-            {/* BURST */}
-            {phase === "burst" && currentReward && (
-              <div style={{ position: "relative" }}>
-                <LightBeam rarity={currentReward.rarity} active={true} />
-                <GiftBox phase="burst" rarity={currentReward.rarity} />
-                <Particles rarity={currentReward.rarity} mode="burst" />
               </div>
             )}
 
@@ -243,11 +302,11 @@ export default function ValentineGacha() {
             {phase === "reveal" && currentReward && (
               <div style={{ animation: "fadeIn 0.3s ease-out" }}>
                 <RewardCard reward={currentReward} isNew={isNewReward} />
-                <div style={{ marginTop: 24, textAlign: "center" }}>
+                <div style={{ marginTop: 16, textAlign: "center" }}>
                   <button
                     onClick={handleContinue}
                     style={{
-                      padding: "14px 40px", fontSize: 15, fontWeight: 800,
+                      padding: "12px 36px", fontSize: 14, fontWeight: 800,
                       fontFamily: "'Nunito', sans-serif", color: "#fff",
                       background: pulls > 0
                         ? "linear-gradient(135deg, #ff6b9d, #ff4d8d)"
@@ -256,7 +315,7 @@ export default function ValentineGacha() {
                         ? "2px solid rgba(255,107,157,0.4)"
                         : "1.5px solid rgba(255,255,255,0.08)",
                       borderRadius: 50, cursor: "pointer",
-                      transition: "transform 0.2s", letterSpacing: "0.04em",
+                      transition: "transform 0.15s ease-out", letterSpacing: "0.04em",
                       boxShadow: pulls > 0 ? "0 0 20px rgba(255,107,157,0.25)" : "none",
                     }}
                     onMouseEnter={(e) => { e.currentTarget.style.transform = "scale(1.04)"; }}
@@ -269,65 +328,93 @@ export default function ValentineGacha() {
             )}
           </div>
 
-          {/* Collection panel */}
-          <div style={{
-            background: "rgba(255,255,255,0.02)",
-            backdropFilter: "blur(16px)",
-            border: "1px solid rgba(255,255,255,0.04)",
-            borderRadius: 20, overflow: "hidden",
-          }}>
-            <button
-              onClick={() => setShowCollection((s) => !s)}
-              style={{
-                width: "100%", padding: "14px", fontSize: 13, fontWeight: 700,
-                fontFamily: "'Nunito', sans-serif", color: "rgba(255,255,255,0.45)",
-                background: "transparent", border: "none", cursor: "pointer",
-                letterSpacing: "0.08em",
-                display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-              }}
-            >
-              <span style={{ fontSize: 10, color: "#ffd54f", opacity: 0.4 }}>✦</span>
-              {showCollection ? "Hide Collection" : "View Collection"}
-              <span style={{ fontSize: 10, color: "#ffd54f", opacity: 0.4 }}>✦</span>
-            </button>
-            {showCollection && (
-              <div style={{ padding: "0 16px 16px" }}>
-                <CollectionGrid collection={collection} />
+          {/* Bottom section */}
+          <div style={{ flexShrink: 0 }}>
+            {/* Recent wishes */}
+            {history.length > 0 && (
+              <div style={{ marginBottom: 8 }}>
+                <div style={{ display: "flex", gap: 5, justifyContent: "center", flexWrap: "wrap" }}>
+                  {history.slice(0, 10).map((r, i) => {
+                    const cfg = RARITY_CONFIG[r.rarity];
+                    return (
+                      <div key={i} title={r.name} style={{
+                        fontSize: 18, width: 34, height: 34,
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        borderRadius: 9,
+                        background: `${cfg.bg}60`,
+                        border: `1px solid ${cfg.color}20`,
+                        boxShadow: `0 0 8px ${cfg.glow}`,
+                        backdropFilter: "blur(8px)",
+                      }}>
+                        {r.emoji}
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             )}
-          </div>
 
-          {/* Recent wishes */}
-          {history.length > 0 && (
-            <div style={{ marginTop: 20 }}>
-              <div style={{
-                fontSize: 11, color: "rgba(255,255,255,0.2)", textAlign: "center",
-                marginBottom: 10, textTransform: "uppercase", letterSpacing: "0.15em", fontWeight: 700,
-              }}>
-                ✦ Recent Wishes ✦
-              </div>
-              <div style={{ display: "flex", gap: 6, justifyContent: "center", flexWrap: "wrap" }}>
-                {history.slice(0, 10).map((r, i) => {
-                  const cfg = RARITY_CONFIG[r.rarity];
-                  return (
-                    <div key={i} title={r.name} style={{
-                      fontSize: 20, width: 38, height: 38,
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                      borderRadius: 10,
-                      background: `${cfg.bg}60`,
-                      border: `1px solid ${cfg.color}20`,
-                      boxShadow: `0 0 8px ${cfg.glow}`,
-                      backdropFilter: "blur(8px)",
-                    }}>
-                      {r.emoji}
-                    </div>
-                  );
-                })}
-              </div>
+            {/* Collection panel */}
+            <div style={{
+              background: "rgba(255,255,255,0.02)",
+              backdropFilter: "blur(16px)",
+              border: "1px solid rgba(255,255,255,0.04)",
+              borderRadius: 16, overflow: "hidden",
+            }}>
+              <button
+                onClick={() => showCollection ? closeCollection() : setShowCollection(true)}
+                style={{
+                  width: "100%", padding: "10px", fontSize: 12, fontWeight: 700,
+                  fontFamily: "'Nunito', sans-serif", color: "rgba(255,255,255,0.45)",
+                  background: "transparent", border: "none", cursor: "pointer",
+                  letterSpacing: "0.08em",
+                  display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                  transition: "color 0.2s ease",
+                }}
+              >
+                <span style={{ fontSize: 9, color: "#ffd54f", opacity: 0.4 }}>✦</span>
+                {showCollection ? "Hide Collection" : "View Collection"}
+                <span style={{ fontSize: 9, color: "#ffd54f", opacity: 0.4 }}>✦</span>
+              </button>
             </div>
-          )}
+          </div>
         </div>
       </div>
+
+      {/* Collection overlay — animated */}
+      {showCollection && (
+        <div
+          onClick={closeCollection}
+          style={{
+            position: "fixed", inset: 0, zIndex: 200,
+            background: "rgba(0,0,0,0.7)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            padding: "40px 20px",
+            animation: collectionClosing
+              ? "overlayFadeOut 0.3s ease-in forwards"
+              : "overlayFadeIn 0.3s ease-out forwards",
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: "100%", maxWidth: 380, maxHeight: "80dvh",
+              position: "relative",
+              background: "linear-gradient(160deg, #12082a, #0d0620)",
+              border: "1px solid rgba(255,255,255,0.08)",
+              borderRadius: 20, padding: "16px",
+              overflowX: "hidden",
+              overflowY: "auto",
+              WebkitOverflowScrolling: "touch",
+              animation: collectionClosing
+                ? "overlayContentSlideDown 0.28s ease-in forwards"
+                : "overlayContentSlideUp 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards",
+            }}
+          >
+            <CollectionGrid collection={collection} selected={selectedReward} onSelect={setSelectedReward} />
+          </div>
+        </div>
+      )}
     </>
   );
 }
