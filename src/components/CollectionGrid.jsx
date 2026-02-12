@@ -12,7 +12,7 @@ export default function CollectionGrid({ collection, onSelect }) {
       </div>
       <div style={{
         display: "grid",
-        gridTemplateColumns: "repeat(auto-fill, minmax(60px, 1fr))",
+        gridTemplateColumns: "repeat(4, 1fr)",
         gap: 8,
       }}>
         {REWARDS.map((reward) => {
