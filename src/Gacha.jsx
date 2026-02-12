@@ -43,6 +43,7 @@ export default function ValentineGacha() {
   useEffect(() => { localStorage.setItem("gacha_history", JSON.stringify(history)); }, [history]);
   const [passwordInput, setPasswordInput] = useState("");
   const [passwordError, setPasswordError] = useState(false);
+  const [passwordVisible, setPasswordVisible] = useState(false);
   const tierTimers = useRef([]);
 
   function vibrate(pattern) {
@@ -269,7 +270,7 @@ export default function ValentineGacha() {
           }}>
             {/* Refresh button — top right of panel */}
             <button
-              onClick={() => { setShowPasswordPrompt(true); setPasswordInput(""); setPasswordError(false); }}
+              onClick={() => { setShowPasswordPrompt(true); setPasswordInput(""); setPasswordError(false); setPasswordVisible(false); }}
               style={{
                 position: "absolute", top: 10, right: 10,
                 width: 28, height: 28,
@@ -606,46 +607,72 @@ export default function ValentineGacha() {
             }}>
               💎 Refill Wishes
             </div>
-            <input
-              type="password"
-              value={passwordInput}
-              onChange={(e) => { setPasswordInput(e.target.value); setPasswordError(false); }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  if (passwordInput === "reset") {
-                    localStorage.clear();
-                    setPulls(10);
-                    setCollection([]);
-                    setHistory([]);
-                    setPasswordClosing(true);
-                    setTimeout(() => { setShowPasswordPrompt(false); setPasswordClosing(false); }, 250);
-                  } else if (passwordInput === "ilovebao") {
-                    setPulls(10);
-                    setPasswordClosing(true);
-                    setTimeout(() => { setShowPasswordPrompt(false); setPasswordClosing(false); }, 250);
-                  } else {
-                    setPasswordError(true);
+            <div style={{ position: "relative" }}>
+              <input
+                type={passwordVisible ? "text" : "password"}
+                value={passwordInput}
+                onChange={(e) => { setPasswordInput(e.target.value); setPasswordError(false); }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    if (passwordInput === "reset") {
+                      localStorage.clear();
+                      setPulls(10);
+                      setCollection([]);
+                      setHistory([]);
+                      setPasswordClosing(true);
+                      setTimeout(() => { setShowPasswordPrompt(false); setPasswordClosing(false); }, 250);
+                    } else if (passwordInput === "ilovebao") {
+                      setPulls(10);
+                      setPasswordClosing(true);
+                      setTimeout(() => { setShowPasswordPrompt(false); setPasswordClosing(false); }, 250);
+                    } else {
+                      setPasswordError(true);
+                    }
                   }
-                }
-              }}
-              placeholder="Enter password..."
-              autoFocus
-              style={{
-                width: "100%", padding: "10px 14px",
-                fontSize: 14, fontFamily: "'Quicksand', sans-serif",
-                color: "#fff",
-                background: "rgba(255,255,255,0.06)",
-                border: passwordError
-                  ? "1.5px solid rgba(255,80,80,0.5)"
-                  : "1.5px solid rgba(255,255,255,0.1)",
-                borderRadius: 12,
-                outline: "none",
-                textAlign: "center",
-                letterSpacing: "0.1em",
-                transition: "border-color 0.2s ease",
-                boxSizing: "border-box",
-              }}
-            />
+                }}
+                placeholder="Enter password..."
+                autoFocus
+                style={{
+                  width: "100%", padding: "10px 36px 10px 14px",
+                  fontSize: 14, fontFamily: "'Quicksand', sans-serif",
+                  color: "#fff",
+                  background: "rgba(255,255,255,0.06)",
+                  border: passwordError
+                    ? "1.5px solid rgba(255,80,80,0.5)"
+                    : "1.5px solid rgba(255,255,255,0.1)",
+                  borderRadius: 12,
+                  outline: "none",
+                  textAlign: "center",
+                  letterSpacing: "0.1em",
+                  transition: "border-color 0.2s ease",
+                  boxSizing: "border-box",
+                }}
+              />
+              <button
+                onClick={() => setPasswordVisible(!passwordVisible)}
+                style={{
+                  position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)",
+                  background: "transparent", border: "none", cursor: "pointer",
+                  color: "rgba(255,255,255,0.3)", fontSize: 14, padding: 4,
+                  transition: "color 0.2s ease",
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.color = "rgba(255,255,255,0.6)"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.color = "rgba(255,255,255,0.3)"; }}
+              >
+                {passwordVisible ? (
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
+                    <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
+                    <line x1="1" y1="1" x2="23" y2="23" />
+                  </svg>
+                ) : (
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
+                )}
+              </button>
+            </div>
             {passwordError && (
               <div style={{
                 marginTop: 8, fontSize: 11, color: "rgba(255,80,80,0.7)",
