@@ -7,7 +7,7 @@ export const REWARDS = [
   { id: 5, name: "One Reason I Love You", rarity: "common", emoji: "💕", category: "Affection", description: "I'll tell you one reason why I love you" },
   { id: 6, name: "Group Hug with Bao", rarity: "common", emoji: "🐶", category: "Affection", description: "Mandatory group hug, Bao included" },
   // Rare
-  { id: 7, name: "Prank Call Someone", rarity: "rare", emoji: "📞", category: "Chaos", description: "Pick anyone, I'll make the call" },
+  { id: 7, name: "Belly Button Poke", rarity: "rare", emoji: "👉", category: "Chaos", description: "Stick your finger into my belly button for 4 seconds" },
   { id: 8, name: "Cook a Meal for You", rarity: "epic", emoji: "👨‍🍳", category: "Food", description: "Your choice of dish, chef William on duty" },
   { id: 9, name: "10-Min Back Massage", rarity: "rare", emoji: "💆", category: "Affection", description: "Ten full minutes, no slacking. Save for whenever" },
   { id: 10, name: "Dessert of Your Choice", rarity: "rare", emoji: "🍰", category: "Food", description: "Any dessert you want, no questions asked" },
