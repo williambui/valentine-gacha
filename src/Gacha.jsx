@@ -218,7 +218,7 @@ export default function ValentineGacha() {
               lineHeight: 1.2, marginBottom: 4, letterSpacing: "0.08em",
               filter: "drop-shadow(0 0 20px rgba(255,107,157,0.3))",
             }}>
-              Love Gacha
+              Uyen's Love Gacha
             </h1>
           </div>
 
